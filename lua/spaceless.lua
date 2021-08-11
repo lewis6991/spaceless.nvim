@@ -41,7 +41,7 @@ local function stripWhitespace(top, bottom)
   local first_changed = vim.fn.getpos("'[")
   local last_changed = vim.fn.getpos("']")
 
-  vim.cmd("exe "..top.." ',' "..vim.b.bottom.. " 's/\\v\\s+$//e'")
+  vim.cmd("silent exe "..top.." ',' "..vim.b.bottom.. " 's/\\v\\s+$//e'")
 
   vim.fn.setpos("']", last_changed)
   vim.fn.setpos("'[", first_changed)
