@@ -15,11 +15,9 @@ local function atTipOfUndo()
 end
 
 local function stripWhitespace(top, bottom)
-  -- Only do this on whitelisted filetypes and if the buffer is modifiable
+  -- Only do if the buffer is modifiable
   -- and modified and we are at the tip of an undo tree
-  if not vim.bo.modifiable
-    and not vim.bo.modified
-    and not atTipOfUndo() then
+  if not (vim.bo.modifiable and vim.bo.modified and atTipOfUndo()) then
     return
   end
 
