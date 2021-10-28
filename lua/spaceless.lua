@@ -63,7 +63,7 @@ function M.onTextChangedI()
       vim.b.insert_bottom = vim.b.insert_bottom + (curline - vim.b.whitespace_lastline)
   elseif vim.b.whitespace_lastline > curline then
       -- User inserted lines above whitespace_lastline
-      vim.b.insert_top = vim.b.insert_top - (vim.b.whitespace_lastline - curline)
+      vim.b.insert_top = math.max(1, vim.b.insert_top - (vim.b.whitespace_lastline - curline))
   end
 
   vim.b.whitespace_lastline = curline
