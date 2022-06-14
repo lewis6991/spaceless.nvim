@@ -1,8 +1,6 @@
 local api = vim.api
 
-local M = {}
-
-function M.onInsertEnter()
+local function onInsertEnter()
   local curline = api.nvim_win_get_cursor(0)[1]
   vim.b.insert_top = curline
   vim.b.insert_bottom = curline
@@ -46,13 +44,13 @@ local function stripWhitespace(top, bottom)
   vim.fn.setpos('.', original_cursor)
 end
 
-function M.onTextChanged()
+local function onTextChanged()
   -- Text was modified in non-Insert mode.  Use the '[ and '] marks to find
   -- what was edited and remove its whitespace.
   stripWhitespace(vim.fn.line("'["), vim.fn.line("']"))
 end
 
-function M.onTextChangedI()
+local function onTextChangedI()
   -- Handle motion this way (rather than checking if
   -- b:insert_bottom < curline) to catch the case where the user presses
   -- Enter, types whitespace, moves up, and presses Enter again.
@@ -69,37 +67,40 @@ function M.onTextChangedI()
   vim.b.whitespace_lastline = curline
 end
 
-function M.onInsertLeave()
+local function onInsertLeave()
   stripWhitespace(vim.b.insert_top, vim.b.insert_bottom)
 end
 
-function M.onBufLeave()
+local function onBufLeave()
   if api.nvim_get_mode().mode == 'i' then
     stripWhitespace(vim.b.insert_top, vim.b.insert_bottom)
   end
 end
 
-function M.onBufEnter()
+local function onBufEnter()
   if api.nvim_get_mode().mode == 'i' then
-    M.onInsertEnter()
+    onInsertEnter()
   end
 end
 
-function M.setup()
-  vim.cmd[[
-  augroup Spaceless
-    autocmd!
-    autocmd InsertEnter  * lua require('spaceless').onInsertEnter()
-    autocmd InsertLeave  * lua require('spaceless').onInsertLeave()
-    autocmd TextChangedI * lua require('spaceless').onTextChangedI()
-    autocmd TextChanged  * lua require('spaceless').onTextChanged()
+local M = {}
 
-    " The user may move between buffers in insert mode
-    " (for example, with the mouse), so handle this appropriately.
-    autocmd BufEnter * lua require('spaceless').onBufEnter()
-    autocmd BufLeave * lua require('spaceless').onBufLeave()
-  augroup END
-  ]]
+function M.setup()
+  local group = api.nvim_create_augroup('spaceless', {})
+
+  local function au(event, callback)
+    api.nvim_create_autocmd(event, { group = group, callback = callback })
+  end
+
+  au('InsertEnter' , onInsertEnter)
+  au('InsertLeave' , onInsertLeave)
+  au('TextChangedI', onTextChangedI)
+  au('TextChanged' , onTextChanged)
+
+  -- The user may move between buffers in insert mode
+  -- (for example, with the mouse), so handle this appropriately.
+  au('BufEnter', onBufEnter)
+  au('BufLeave', onBufLeave)
 end
 
 return M
