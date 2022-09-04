@@ -19,7 +19,7 @@ local function stripWhitespace(top, bottom)
     return
   end
 
-  print(vim.inspect(require("spaceless").options.ignore_filetypes))
+  -- print(vim.inspect(require("spaceless").options.ignore_filetypes))
   if vim.tbl_contains(require("spaceless").options.ignore_filetypes, vim.api.nvim_buf_get_option(0, "filetype")) then
     return
   end
