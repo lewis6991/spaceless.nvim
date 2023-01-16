@@ -37,7 +37,13 @@ local function stripWhitespace(top, bottom)
   local first_changed = vim.fn.getpos("'[")
   local last_changed = vim.fn.getpos("']")
 
-  vim.cmd("silent exe "..top.." ',' "..vim.b.bottom.. " 's/\\v\\s+$//e'")
+  local sourced_text = api.nvim_buf_get_lines(0, top-1, bottom, false)
+  local replaced_text = {}
+  for index, line in ipairs(sourced_text) do
+    local l, _ = string.gsub(line, '%s+$', '')
+    table.insert(replaced_text, index, l)
+  end
+  api.nvim_buf_set_lines(0, top-1, bottom, false, replaced_text)
 
   vim.fn.setpos("']", last_changed)
   vim.fn.setpos("'[", first_changed)
