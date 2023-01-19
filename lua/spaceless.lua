@@ -19,7 +19,7 @@ local function stripWhitespace(top, bottom)
     return
   end
 
-  if not top then return end
+  if not top or top < 1 then return end
 
   -- All conditions passed, go ahead and strip
   -- Handle the user deleting lines at the bottom
