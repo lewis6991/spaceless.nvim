@@ -19,7 +19,7 @@ local function stripWhitespace(top, bottom)
     return
   end
 
-  if not top or top < 1 then return end
+  if not top then return end
 
   -- All conditions passed, go ahead and strip
   -- Handle the user deleting lines at the bottom
@@ -31,17 +31,17 @@ local function stripWhitespace(top, bottom)
   end
 
   vim.b.bottom = math.min(file_bottom, bottom)
-  bottom = vim.b.bottom
 
-  -- Use the API as oppoased to :s so & (repeat last substitute doesn't break)
-  local sourced_text = api.nvim_buf_get_lines(0, top-1, bottom, false)
-  for i, line in ipairs(sourced_text) do
-    local sidx, edix = line:find('%s+$')
-    if sidx then
-      local row = (top - 1) + (i - 1)
-      api.nvim_buf_set_text(0, row, sidx-1, row, edix, {})
-    end
-  end
+  -- Keep the cursor position and these marks:
+  local original_cursor = vim.fn.getcurpos()
+  local first_changed = vim.fn.getpos("'[")
+  local last_changed = vim.fn.getpos("']")
+
+  vim.cmd("silent exe "..top.." ',' "..vim.b.bottom.. " 's/\\v\\s+$//e'")
+
+  vim.fn.setpos("']", last_changed)
+  vim.fn.setpos("'[", first_changed)
+  vim.fn.setpos('.', original_cursor)
 end
 
 local function onTextChanged()
