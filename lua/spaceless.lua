@@ -19,6 +19,11 @@ local function stripWhitespace(top, bottom)
     return
   end
 
+  -- print(vim.inspect(require("spaceless").options.ignore_filetypes))
+  if vim.tbl_contains(require("spaceless").options.ignore_filetypes, vim.api.nvim_buf_get_option(0, "filetype")) then
+    return
+  end
+
   if not top then return end
 
   -- All conditions passed, go ahead and strip
@@ -83,9 +88,15 @@ local function onBufEnter()
   end
 end
 
-local M = {}
+local M = {
+  options = {
+    ignore_filetypes = {}
+  }
+}
 
-function M.setup()
+function M.setup(options)
+  M.options = vim.tbl_extend("force", M.options, options or {})
+
   local group = api.nvim_create_augroup('spaceless', {})
 
   local function au(event, callback)
