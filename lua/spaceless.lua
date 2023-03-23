@@ -1,6 +1,8 @@
-local api = vim.api
+local api, fn = vim.api, vim.fn
 
-local function onInsertEnter()
+local M = {}
+
+function M.onInsertEnter()
   local curline = api.nvim_win_get_cursor(0)[1]
   vim.b.insert_top = curline
   vim.b.insert_bottom = curline
@@ -8,7 +10,7 @@ local function onInsertEnter()
 end
 
 local function atTipOfUndo()
-  local tree = vim.fn.undotree()
+  local tree = fn.undotree()
   return tree.seq_last == tree.seq_cur
 end
 
@@ -23,7 +25,7 @@ local function stripWhitespace(top, bottom)
 
   -- All conditions passed, go ahead and strip
   -- Handle the user deleting lines at the bottom
-  local file_bottom = vim.fn.line('$')
+  local file_bottom = fn.line('$')
 
   if top > file_bottom then
     -- The user deleted all the lines; there is nothing to do
@@ -33,24 +35,24 @@ local function stripWhitespace(top, bottom)
   vim.b.bottom = math.min(file_bottom, bottom)
 
   -- Keep the cursor position and these marks:
-  local original_cursor = vim.fn.getcurpos()
-  local first_changed = vim.fn.getpos("'[")
-  local last_changed = vim.fn.getpos("']")
+  local original_cursor = fn.getcurpos()
+  local first_changed = fn.getpos("'[")
+  local last_changed = fn.getpos("']")
 
   vim.cmd("silent exe "..top.." ',' "..vim.b.bottom.. " 's/\\v\\s+$//e'")
 
-  vim.fn.setpos("']", last_changed)
-  vim.fn.setpos("'[", first_changed)
-  vim.fn.setpos('.', original_cursor)
+  fn.setpos("']", last_changed)
+  fn.setpos("'[", first_changed)
+  fn.setpos('.', original_cursor)
 end
 
-local function onTextChanged()
+function M.onTextChanged()
   -- Text was modified in non-Insert mode.  Use the '[ and '] marks to find
   -- what was edited and remove its whitespace.
-  stripWhitespace(vim.fn.line("'["), vim.fn.line("']"))
+  stripWhitespace(fn.line("'["), fn.line("']"))
 end
 
-local function onTextChangedI()
+function M.onTextChangedI()
   -- Handle motion this way (rather than checking if
   -- b:insert_bottom < curline) to catch the case where the user presses
   -- Enter, types whitespace, moves up, and presses Enter again.
@@ -67,40 +69,25 @@ local function onTextChangedI()
   vim.b.whitespace_lastline = curline
 end
 
-local function onInsertLeave()
+function M.onInsertLeave()
   stripWhitespace(vim.b.insert_top, vim.b.insert_bottom)
 end
 
-local function onBufLeave()
+function M.onBufLeave()
   if api.nvim_get_mode().mode == 'i' then
     stripWhitespace(vim.b.insert_top, vim.b.insert_bottom)
   end
 end
 
-local function onBufEnter()
+function M.onBufEnter()
   if api.nvim_get_mode().mode == 'i' then
-    onInsertEnter()
+    M.onInsertEnter()
   end
 end
 
-local M = {}
-
+---@deprecated
 function M.setup()
-  local group = api.nvim_create_augroup('spaceless', {})
-
-  local function au(event, callback)
-    api.nvim_create_autocmd(event, { group = group, callback = callback })
-  end
-
-  au('InsertEnter' , onInsertEnter)
-  au('InsertLeave' , onInsertLeave)
-  au('TextChangedI', onTextChangedI)
-  au('TextChanged' , onTextChanged)
-
-  -- The user may move between buffers in insert mode
-  -- (for example, with the mouse), so handle this appropriately.
-  au('BufEnter', onBufEnter)
-  au('BufLeave', onBufLeave)
+  -- moved to plugin/
 end
 
 return M
