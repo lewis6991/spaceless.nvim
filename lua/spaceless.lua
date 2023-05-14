@@ -1,6 +1,10 @@
 local api, fn = vim.api, vim.fn
 
-local M = {}
+local M = {
+  options = {
+    ignore_filetypes = {}
+  }
+}
 
 function M.onInsertEnter()
   local curline = api.nvim_win_get_cursor(0)[1]
@@ -18,6 +22,10 @@ local function stripWhitespace(top, bottom)
   -- Only do if the buffer is modifiable
   -- and modified and we are at the tip of an undo tree
   if not (vim.bo.modifiable and vim.bo.modified and atTipOfUndo()) then
+    return
+  end
+
+  if vim.tbl_contains(M.options.ignore_filetypes, vim.bo.filetype) then
     return
   end
 
@@ -85,9 +93,8 @@ function M.onBufEnter()
   end
 end
 
----@deprecated
-function M.setup()
-  -- moved to plugin/
+function M.setup(options)
+  M.options = vim.tbl_extend("force", M.options, options or {})
 end
 
 return M
