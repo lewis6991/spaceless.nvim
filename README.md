@@ -11,7 +11,9 @@ Strip trailing whitespace as you are editing.
 use {
   'lewis6991/spaceless.nvim',
   config = function()
-    require'spaceless'.setup()
+    require'spaceless'.setup({
+      ignore_filetypes = { "markdown" }
+    })
   end
 }
 ```
