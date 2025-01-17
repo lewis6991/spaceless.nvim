@@ -58,12 +58,14 @@ function M.onTextChangedI()
   -- Enter, types whitespace, moves up, and presses Enter again.
   local curline = api.nvim_win_get_cursor(0)[1]
 
-  if vim.b.whitespace_lastline < curline then
+  if vim.b.whitespace_lastline then
+    if vim.b.whitespace_lastline < curline then
       -- User inserted lines below whitespace_lastline
       vim.b.insert_bottom = vim.b.insert_bottom + (curline - vim.b.whitespace_lastline)
-  elseif vim.b.whitespace_lastline > curline then
+    elseif vim.b.whitespace_lastline > curline then
       -- User inserted lines above whitespace_lastline
       vim.b.insert_top = math.max(1, vim.b.insert_top - (vim.b.whitespace_lastline - curline))
+    end
   end
 
   vim.b.whitespace_lastline = curline
